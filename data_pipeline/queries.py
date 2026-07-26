@@ -121,6 +121,4 @@ print(sql_join_df)
 print("\nPandas Merge")
 print(merged_df)
 
-
-
 conn.close()
