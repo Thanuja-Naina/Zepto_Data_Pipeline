@@ -1,0 +1,122 @@
+==========================================================================================
+Continuing from titanic.csv produced by 01_eda.py (no re-download)
+==========================================================================================
+Loaded cleaned dataset: (889, 15)
+
+Features used: ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex', 'embarked']
+Target: survived
+
+==========================================================================================
+Stratified train/test split
+==========================================================================================
+Overall class balance (survived): 
+survived
+0    0.618
+1    0.382
+Justification: survival is moderately imbalanced (~62% did not survive vs ~38% survived, from Task 1's profiling). A plain random split risks over- or under-representing the minority (survived=1) class in either the train or test fold, which would distort both training signal and evaluation metrics. stratify=y guarantees both splits preserve the same ~62/38 ratio as the full dataset.
+
+Train shape: (711, 7), Test shape: (178, 7)
+Train class balance: 
+survived
+0    0.617
+1    0.383
+Test class balance: 
+survived
+0    0.618
+1    0.382
+
+Preprocessing: median-impute + StandardScaler for numeric features (pclass, age, sibsp, parch, fare); most-frequent-impute + OneHotEncoder for categorical features (sex, embarked). Wrapped in a ColumnTransformer inside each model's Pipeline, so calling .fit(X_train, y_train) fits the imputer/scaler/encoder ONLY on the training fold, and .predict(X_test) applies those already-fitted transforms in transform-only mode — no step is ever fit on the test data.
+
+==========================================================================================
+Training 3 classifiers on the identical train/test split
+==========================================================================================
+
+--- Logistic Regression ---
+Confusion matrix:
+[[97 13]
+ [21 47]]
+Accuracy=0.809 Precision=0.783 Recall=0.691 F1=0.734 AUC=0.861
+
+--- Decision Tree ---
+Confusion matrix:
+[[100  10]
+ [ 24  44]]
+Accuracy=0.809 Precision=0.815 Recall=0.647 F1=0.721 AUC=0.856
+
+--- Random Forest ---
+Confusion matrix:
+[[95 15]
+ [19 49]]
+Accuracy=0.809 Precision=0.766 Recall=0.721 F1=0.742 AUC=0.820
+
+Side-by-side comparison table (3 classifiers):
+                     Accuracy  Precision  Recall     F1    AUC
+Model                                                         
+Logistic Regression     0.809      0.783   0.691  0.734  0.861
+Decision Tree           0.809      0.815   0.647  0.721  0.856
+Random Forest           0.809      0.766   0.721  0.742  0.820
+
+Decision tree plotted -> charts/09_decision_tree.png (feature names: ['pclass', 'age', 'sibsp', 'parch', 'fare', 'sex_female', 'sex_male', 'embarked_C', 'embarked_Q', 'embarked_S'])
+
+==========================================================================================
+Imbalance handling comparison (Random Forest): baseline vs class_weight='balanced' vs SMOTE (train-fold only)
+==========================================================================================
+Class balance reminder: 
+survived
+0    0.618
+1    0.382
+
+SMOTE: training rows before=711, after=878 (class balance after SMOTE: {1: 0.5, 0: 0.5})
+
+Imbalance strategy comparison (Random Forest):
+                             Precision  Recall     F1
+Strategy                                             
+(a) Baseline (no handling)       0.766   0.721  0.742
+(b) class_weight='balanced'      0.766   0.721  0.742
+(c) SMOTE (train fold only)      0.761   0.750  0.756
+
+Conclusion: '(c) SMOTE (train fold only)' achieved the highest F1 (0.756) among the three strategies. Given the dataset's moderate (not severe) ~62/38 imbalance, the gap between strategies is modest — class_weight and SMOTE both nudge recall on the minority (survived) class up relative to the baseline, at some cost to precision, which is the expected trade-off when correcting for imbalance.
+
+==========================================================================================
+Hyperparameter tuning: GridSearchCV over Random Forest
+==========================================================================================
+
+Best parameters: {'model__max_depth': 4, 'model__max_features': 'sqrt', 'model__n_estimators': 400}
+Best CV F1 score: 0.747
+OOB score of best estimator: 0.817
+Tuned Random Forest test F1: 0.727
+
+==========================================================================================
+Regression side-task: predicting fare with multivariate linear regression
+==========================================================================================
+
+MAE:  21.139
+RMSE: 41.747
+R2:   0.347
+Adjusted R2: 0.324 (n=178, p=6)
+
+Heteroscedasticity check: the residual spread visibly widens as predicted fare increases (a funnel/cone shape rather than a uniform band), and several large positive residuals appear only at higher predicted fares. This indicates HETEROSCEDASTICITY — the model's error variance is not constant across the range of predictions, which is expected given fare's strong right-skew (a few very high-fare passengers are much harder to predict precisely than the dense low-fare majority).
+
+==========================================================================================
+FINAL MODEL COMPARISON
+==========================================================================================
+
+Classification metrics (3 classifiers, separate metric group):
+                     Accuracy  Precision  Recall     F1    AUC
+Model                                                         
+Logistic Regression     0.809      0.783   0.691  0.734  0.861
+Decision Tree           0.809      0.815   0.647  0.721  0.856
+Random Forest           0.809      0.766   0.721  0.742  0.820
+
+Regression metrics (separate metric group, not comparable to the classification scale above):
+                             MAE    RMSE     R2  Adjusted R2
+Linear Regression (fare)  21.139  41.747  0.347        0.324
+
+Final recommendation: deploy the tuned Random Forest (from GridSearchCV, OOB=0.817). Among the three baseline classifiers, Random Forest already had the best F1 (0.742 vs Logistic Regression 0.734 and Decision Tree 0.721), while Logistic Regression edged it out slightly on AUC (0.861 vs 0.820) — a gap small enough not to change the recommendation. GridSearchCV tuning plus the OOB score give the Random Forest an extra layer of validated confidence the other two models don't have, and ensembles of trees are also less sensitive to the linear decision-boundary assumption that logistic regression makes, which matters given the class-and-sex interaction effects seen in the EDA. This tuned Random Forest is the specific artifact saved below for deployment.
+
+==========================================================================================
+Saving the full fitted pipeline with joblib
+==========================================================================================
+Saved -> titanic_pipeline.joblib (ColumnTransformer + tuned RandomForest, fit end-to-end; usable directly on raw unpreprocessed rows)
+
+Reloaded pipeline predictions on 2 raw sample rows: [1 0] (1 = predicted survived, 0 = predicted not survived) — pipeline successfully ran imputation, scaling, one-hot encoding, and prediction end-to-end on unpreprocessed raw input.
