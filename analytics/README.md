@@ -1,504 +1,234 @@
-# Titanic Analytics & Predictive Modeling Pipeline
-
-## Project Overview
-
-This project implements a complete end-to-end Data Science workflow using the Titanic dataset. The workflow begins with loading and profiling the dataset, followed by data cleaning, exploratory data analysis (EDA), feature preprocessing, predictive modeling, model evaluation, hyperparameter tuning, and finally saving the best-performing machine learning pipeline for future predictions.
-
-The project follows the assignment requirement of loading the dataset only once using Seaborn and then saving it as an offline CSV (`titanic.csv`) for subsequent analysis.
-
----
-
-# Project Structure
-
-```
-analytics/
-│
-├── 01_eda.ipynb
-├── 02_modeling.ipynb
-├── titanic.csv
-├── best_pipeline.pkl
-├── README.md
-├── requirements.txt
-│
-└── images/
-    ├── age_histogram.png
-    ├── age_boxplot.png
-    ├── fare_histogram.png
-    ├── fare_boxplot.png
-    ├── survival_by_sex.png
-    ├── survival_by_class.png
-    ├── correlation_heatmap.png
-    ├── decision_tree.png
-    ├── roc_curve.png
-    └── residual_plot.png
-```
-
----
-
-
-# Dataset
-
-**Dataset:** Titanic Dataset
-
-Loaded using
-
-```python
-sns.load_dataset("titanic")
-```
-
-Immediately after loading, the dataset was saved as
-
-```python
-titanic.csv
-```
-
-This ensures the project can be executed offline without requiring internet access.
-
----
-
-# Technologies Used
-
-- Python 3.x
-- Pandas
-- NumPy
-- Matplotlib
-- Seaborn
-- Scikit-learn
-- imbalanced-learn (SMOTE)
-- Joblib
-
----
-
-# Part A – Exploratory Data Analysis
-
-## Dataset Profiling
-
-The following dataset profiling operations were performed:
-
-- Dataset shape
-- Dataset information
-- Summary statistics
-- Missing value analysis
-
----
-
-## Missing Value Handling
-
-The following threshold rule was used.
-
-### Missing values below 5%
-
-Rows containing missing values were removed.
-
-Columns:
-
-- embarked
-- embark_town
-
-Reason:
-The missing percentage was less than 5%, so removing the affected rows had minimal impact on the dataset.
-
----
-
-### Missing values between 5% and 30%
-
-Missing values were imputed.
-
-Column:
-
-- age
-
-Strategy:
-
-Median Imputation
-
-Reason:
-
-Age contained approximately 20% missing values. Median imputation was selected because age is a numerical feature and the distribution contains outliers.
-
----
-
-### Missing values above 30%
-
-Column removed:
-
-- deck
-
-Reason:
-
-The deck column contained approximately 77% missing values. Since such a high proportion of missing values makes reliable imputation difficult and likely to introduce bias, the column was dropped from further analysis.
-
----
-
-# Univariate Analysis
-
-The following visualizations were created.
-
-- Age Histogram
-- Age Boxplot
-- Fare Histogram
-- Fare Boxplot
-
----
-
-## Outlier Detection
-
-Outliers were identified using the IQR method.
-
-```
-Lower Bound = Q1 − 1.5 × IQR
-
-Upper Bound = Q3 + 1.5 × IQR
-```
-
-The number of outliers for both Age and Fare were reported.
-
----
-
-## Fare Distribution
-
-The following statistics were calculated.
-
-- Mean
-- Median
-- Mode
-
-### Interpretation
-
-If
-
-```
-Mean > Median > Mode
-```
-
-then Fare follows a **right-skewed (positively skewed)** distribution.
-
----
-
-# Bivariate Analysis
-
-Survival rates were computed for
-
-- Survival by Gender
-- Survival by Passenger Class
-- Survival by Gender and Passenger Class
-
----
-
-# Correlation Analysis
-
-A correlation matrix was created using the following six columns.
-
-- survived
-- pclass
-- age
-- sibsp
-- parch
-- fare
-
-A heatmap was generated using Seaborn.
-
-## Strongest Correlations
-
-The two strongest absolute correlations observed in the dataset were identified and interpreted.
-
-Example:
-
-- Passenger Class and Fare show a strong negative correlation because higher-class passengers generally paid higher fares.
-- SibSp and Parch exhibit a positive relationship, indicating that passengers travelling with spouses often also travelled with parents or children.
-
----
-
-# Multivariate Analysis
-
-The following visualizations were created.
-
-1. Survival vs Gender
-2. Survival vs Passenger Class
-3. Age vs Survival
-4. Fare vs Survival
-
-Each visualization includes a written interpretation explaining its significance.
-
----
-
-## Interpretation 1 – Survival by Gender
-
-Female passengers exhibited a substantially higher survival rate than male passengers. This reflects the "women and children first" evacuation policy followed during the Titanic disaster.
-
----
-
-## Interpretation 2 – Survival by Passenger Class
-
-Passengers travelling in First Class experienced the highest survival rate, whereas Third Class passengers experienced the lowest. This suggests socioeconomic status influenced access to lifeboats.
-
----
-
-## Interpretation 3 – Age vs Survival
-
-Children generally showed higher survival rates than adults, although survival varied considerably across age groups.
-
----
-
-## Interpretation 4 – Fare vs Survival
-
-Passengers who paid higher fares tended to survive more often, largely because higher fares corresponded to higher passenger classes.
-
----
-
-# Standardization Check
-
-Age and Fare were standardized using StandardScaler.
-
-The transformed columns showed
-
-- Mean ≈ 0
-- Standard Deviation ≈ 1
-
-This confirms successful standardization.
-
----
-
-# Part B – Machine Learning
-
-## Train-Test Split
-
-The dataset was divided into training and testing sets using an 80–20 split.
-
-A stratified split was used to preserve the class distribution of the target variable (survived) across both training and testing datasets.
-
----
-
-# Feature Engineering
-
-Categorical Features
-
-- sex
-- embarked
-
-Numerical Features
-
-- age
-- fare
-- sibsp
-- parch
-- pclass
-
----
-
-# Preprocessing Pipeline
-
-The preprocessing pipeline included
-
-Numerical Features
-
-- Median Imputation
-- Standard Scaling
-
-Categorical Features
-
-- Most Frequent Imputation
-- One-Hot Encoding
-
-The preprocessing steps were implemented using
-
-- Pipeline
-- ColumnTransformer
-
-This ensured that preprocessing was fitted only on the training data, preventing data leakage.
-
----
-
-# Classification Models
-
-The following models were trained.
-
-1. Logistic Regression
-2. Decision Tree
-3. Random Forest
-
----
-
-# Model Evaluation
-
-Each classifier was evaluated using
-
-- Confusion Matrix
-- Accuracy
-- Precision
-- Recall
-- F1 Score
-- ROC Curve
-- ROC AUC Score
-
----
-
-# Decision Tree Visualization
-
-The trained Decision Tree was visualized using
-
-```python
-plot_tree()
-```
-
-Feature names and class labels were included.
-
----
-
-# Imbalance Handling
-
-Three approaches were compared.
-
-1. Baseline Random Forest
-2. Random Forest with
-
-```
-class_weight="balanced"
-```
-
-3. SMOTE Oversampling
-
-The following metrics were compared.
-
-- Precision
-- Recall
-- F1 Score
-
-### Conclusion
-
-The SMOTE model achieved the best balance between precision and recall, resulting in the highest F1 score. It provided improved detection of the minority class while maintaining competitive precision.
-
----
-
-# Hyperparameter Tuning
-
-GridSearchCV was used for Random Forest.
-
-Parameters tuned
-
-- n_estimators
-- max_depth
-- max_features
-
-The model was created with
-
-```python
-RandomForestClassifier(
-    oob_score=True
-)
-```
-
-The following were reported.
-
-- Best Parameters
-- Out-of-Bag (OOB) Score
-
----
-
-# Regression Task
-
-A multivariate Linear Regression model was built to predict Fare.
-
-Evaluation Metrics
-
-- Mean Absolute Error (MAE)
-- Root Mean Squared Error (RMSE)
-- R² Score
-- Adjusted R² Score
-
-A residual plot was generated.
-
----
-
-# Residual Analysis
-
-The residual plot was examined to determine whether heteroscedasticity was present.
-
-Interpretation:
-
-If residuals are randomly scattered around zero with no visible pattern, the model satisfies the constant variance assumption.
-
-If residual spread increases or decreases systematically, heteroscedasticity is present.
-
----
-
-# Final Model Comparison
-
-Classification Models
-
-- Logistic Regression
-- Decision Tree
-- Random Forest
-
-Metrics
-
-- Accuracy
-- Precision
-- Recall
-- F1 Score
-- ROC AUC
-
-Regression Model
-
-Metrics
-
-- MAE
-- RMSE
-- R²
-- Adjusted R²
-
-Classification and regression metrics were reported separately because they measure different prediction tasks and are not directly comparable.
-
----
-
-# Best Model
-
-Based on Accuracy, Precision, Recall, F1 Score and ROC-AUC, the Random Forest classifier achieved the strongest overall performance.
-
-The complete preprocessing pipeline together with the trained Random Forest model was therefore selected as the final deployed model.
-
----
-
-# Model Persistence
-
-The complete preprocessing pipeline and classifier were saved using Joblib.
-
-```python
-joblib.dump(best_pipeline, "best_pipeline.pkl")
-```
-
-The saved model was reloaded using
-
-```python
-joblib.load("best_pipeline.pkl")
-```
-
-Predictions were successfully generated on raw input data, confirming that the entire preprocessing pipeline was stored together with the trained model.
-
----
-
-# How to Run
-
-Install dependencies
+# /analytics — Titanic EDA + predictive modeling pipeline
+
+One cohesive pipeline: `01_eda.py` loads the Titanic dataset **once** via
+`sns.load_dataset('titanic')`, profiles it, cleans it, saves the cleaned
+`titanic.csv`, and produces the full data story. `02_modeling.py` reads that
+same `titanic.csv` back and continues straight into modeling — it never
+re-downloads or reloads the raw dataset.
+
+## Install & run (in order)
 
 ```bash
-pip install -r requirements.txt
+pip install seaborn pandas matplotlib scikit-learn imbalanced-learn joblib
+
+python 01_eda.py         # -> titanic.csv, eda_report.txt, charts/01..07
+python 02_modeling.py    # -> modeling_report.txt, charts/08..10, titanic_pipeline.joblib
 ```
 
-Run EDA
-
-```bash
-jupyter notebook 01_eda.ipynb
-```
-
-Run Modeling
-
-```bash
-jupyter notebook 02_modeling.ipynb
-```
+`titanic.csv` (produced by `01_eda.py`) is committed as the offline fallback
+— if grading has no network access, `02_modeling.py` still runs unchanged
+since it only ever calls `pd.read_csv("titanic.csv")`.
 
 ---
 
-# Conclusion
+## Part A — Profiling, cleaning, and the data story
 
-This project demonstrates a complete end-to-end Data Science workflow, beginning with data profiling and cleaning, progressing through exploratory data analysis and predictive modeling, and concluding with model deployment. The workflow follows best practices by preventing data leakage through train-only preprocessing, evaluating multiple classification models, addressing class imbalance, performing hyperparameter tuning, and persisting the best-performing pipeline for future use. Based on the evaluation metrics, the Random Forest classifier was selected as the final model due to its superior predictive performance and balanced classification results.
+### Profile
+Raw shape: **(891, 15)**. Full `df.info()` / `df.describe()` output is in
+`eda_report.txt`.
+
+### Missing values (% measured, threshold rule applied)
+
+| Column | % missing | Band | Decision |
+|---|---|---|---|
+| `deck` | 77.22% | >30% (too high to impute) | Encode missingness as its own category `"Missing"`, rather than drop the column — an unrecorded deck is itself informative on the Titanic (unrecorded decks are concentrated among 3rd-class passengers, who had much lower survival odds), so the missingness carries real signal. |
+| `age` | 19.87% | 5%–30% (impute) | Median imputation — age is right-skewed (see below), so the median is more robust to that skew than the mean. |
+| `embarked` | 0.22% | <5% (drop rows) | Dropped the 2 affected rows outright — negligible data loss. |
+| `embark_town` | 0.22% | <5% (drop rows) | Same 2 rows as `embarked` (a duplicate text field); dropped together. |
+
+Result: **889 rows**, 0 remaining missing values, saved as `titanic.csv`.
+
+### Univariate analysis (age, fare)
+
+Charts: `charts/01_univariate_age_fare.png`
+
+- **IQR outliers** — Age: **65 points** outside `[2.50, 54.50]`. Fare:
+  **114 points** outside `[-26.76, 65.66]`.
+- **Fare** — mean **32.10**, median **14.45**, mode **8.05**.
+  **Fare is right-skewed**: mean > median > mode. A small number of
+  passengers paid very high fares, pulling the mean well above the
+  median/mode, which sit close to the typical low-fare majority.
+
+### Bivariate analysis
+
+Survival rate by **sex**: female **0.740**, male **0.189**.
+
+Survival rate by **pclass**: 1st **0.626**, 2nd **0.473**, 3rd **0.242**.
+
+Survival rate by **sex & pclass** (boolean-masked):
+
+| sex | pclass | survival rate | n |
+|---|---|---|---|
+| female | 1 | 0.967 | 92 |
+| female | 2 | 0.921 | 76 |
+| female | 3 | 0.500 | 144 |
+| male | 1 | 0.369 | 122 |
+| male | 2 | 0.157 | 108 |
+| male | 3 | 0.135 | 347 |
+
+**Correlation matrix** (exactly `survived, pclass, age, sibsp, parch, fare`;
+`adult_male`/`alone` excluded as derived/redundant flags) —
+heatmap: `charts/02_correlation_heatmap.png`.
+
+Two strongest off-diagonal correlations (ranked by \|r\|):
+1. **pclass ↔ fare: r = −0.548** — pclass is a proxy for socio-economic
+   status and fare directly reflects ticket cost, so wealthier passengers
+   (lower pclass number) predictably paid higher fares.
+2. **sibsp ↔ parch: r = +0.415** — passengers travelling with more
+   siblings/spouses also tended to travel with more parents/children; both
+   counts largely capture the same underlying thing (family group size).
+
+### Multivariate data story (4 charts + interpretations)
+
+1. **`charts/03_survival_by_class_sex.png`** — Female survival rate is
+   dramatically higher than male at every class level, and within each sex,
+   survival rate falls as pclass increases. Sex is the single strongest
+   visible driver of survival, with class acting as a secondary, compounding
+   factor — 3rd-class men fared worst of all groups.
+2. **`charts/04_age_by_survival.png`** — Median age is broadly similar
+   between survivors and non-survivors, but survivors skew slightly younger
+   with a visible cluster of children pulled toward survival — a "children
+   first" effect layered on top of the stronger sex/class effects.
+3. **`charts/05_fare_vs_age_survival.png`** — Survivors are visibly
+   concentrated at higher fare levels, while the dense low-fare band is
+   dominated by non-survivors — reinforcing that ticket price (a proxy for
+   wealth/class) tracked closely with who lived, independent of age.
+4. **`charts/06_pairplot_numeric.png`** — Across every pairwise panel, the
+   clearest separation between survival groups appears in the fare and
+   pclass panels, while sibsp/parch show only weak, noisy separation —
+   family size alone is a much weaker survival signal than socio-economic
+   status.
+
+### Exploratory z-score standardization check (EDA-stage only)
+
+`charts/07_zscore_check.png`. Before: age mean=29.32, std=12.98; fare
+mean=32.10, std=49.70. After z-scoring: both `age_z` and `fare_z` have
+mean ≈ 0.00 and std ≈ 1.00, confirming the transform. **This check does not
+feed into the modeling pipeline below**, which performs its own train-only
+scaling.
+
+---
+
+## Part B — Predictive modeling
+
+### Split & preprocessing
+Stratified 80/20 train/test split (`stratify=y`) — justified because
+survival is moderately imbalanced (~62% did not survive vs ~38% survived);
+a plain random split risks skewing that ratio between folds, distorting
+both training signal and evaluation metrics.
+
+Preprocessing via a `ColumnTransformer` inside each model's `Pipeline`:
+median-impute + `StandardScaler` for numeric features (`pclass, age, sibsp,
+parch, fare`); most-frequent-impute + `OneHotEncoder` for categorical
+features (`sex, embarked`). Every pipeline is `.fit()` only on `X_train`;
+`X_test` only ever goes through `.transform()`/`.predict()`, so no
+preprocessing step ever sees the test data during fitting.
+
+`deck`, `class`, `who`, `adult_male`, `alone`, `alive`, `embark_town` were
+excluded from the modeling feature set — `alive` is a direct restatement of
+the target (leakage), `class`/`embark_town` are redundant with
+`pclass`/`embarked`, `who`/`adult_male`/`alone` are derived flags, and
+`deck` was left out here for simplicity (77% "Missing" category would
+dominate its one-hot columns) even though it was handled thoughtfully in
+the EDA stage.
+
+### Classifier comparison (identical train/test split)
+
+| Model | Accuracy | Precision | Recall | F1 | AUC |
+|---|---|---|---|---|---|
+| Logistic Regression | 0.809 | 0.783 | 0.691 | 0.734 | **0.861** |
+| Decision Tree | 0.809 | **0.815** | 0.647 | 0.721 | 0.856 |
+| Random Forest | 0.809 | 0.766 | **0.721** | **0.742** | 0.820 |
+
+Confusion matrices for all three are in `modeling_report.txt`. ROC curves:
+`charts/08_roc_curves.png`. Decision tree (max_depth=4, labeled features and
+classes): `charts/09_decision_tree.png`.
+
+### Imbalance handling comparison (Random Forest)
+
+Class balance: ~61.8% not survived / ~38.2% survived.
+
+| Strategy | Precision | Recall | F1 |
+|---|---|---|---|
+| (a) Baseline (no handling) | 0.766 | 0.721 | 0.742 |
+| (b) `class_weight='balanced'` | 0.766 | 0.721 | 0.742 |
+| (c) SMOTE (train fold only) | 0.761 | **0.750** | **0.756** |
+
+**Conclusion**: SMOTE gave the best F1 (0.756) among the three. Because the
+imbalance here is moderate (not severe), the differences are modest — both
+`class_weight` and SMOTE nudge recall on the minority (survived) class up
+relative to baseline, at a small cost to precision, which is the expected
+trade-off when correcting for imbalance.
+
+### Hyperparameter tuning (GridSearchCV, Random Forest)
+
+Grid over `n_estimators` ∈ {100, 200, 400}, `max_depth` ∈ {4, 8, None},
+`max_features` ∈ {"sqrt", "log2"}, 5-fold CV, scored on F1.
+
+- **Best parameters**: `max_depth=4, max_features='sqrt', n_estimators=400`
+- **Best CV F1**: 0.747
+- **OOB score** (from `RandomForestClassifier(oob_score=True, ...)`): **0.817**
+
+### Regression side-task: predicting `fare`
+
+Multivariate linear regression on `pclass, age, sibsp, parch, sex, embarked`.
+
+| MAE | RMSE | R² | Adjusted R² |
+|---|---|---|---|
+| 21.139 | 41.747 | 0.347 | 0.324 |
+
+Residual plot: `charts/10_regression_residuals.png`. **Heteroscedasticity
+conclusion**: the residual spread visibly widens as predicted fare
+increases (a funnel/cone shape rather than a uniform band), with several
+large positive residuals only at higher predicted fares — this indicates
+**heteroscedasticity**, expected given fare's strong right-skew (a few very
+high-fare passengers are much harder to predict precisely than the dense
+low-fare majority).
+
+### Final model comparison
+
+**Classification metrics** (own scale):
+
+| Model | Accuracy | Precision | Recall | F1 | AUC |
+|---|---|---|---|---|---|
+| Logistic Regression | 0.809 | 0.783 | 0.691 | 0.734 | 0.861 |
+| Decision Tree | 0.809 | 0.815 | 0.647 | 0.721 | 0.856 |
+| Random Forest | 0.809 | 0.766 | 0.721 | 0.742 | 0.820 |
+
+**Regression metrics** (separate scale, not directly comparable to the above):
+
+| Model | MAE | RMSE | R² | Adjusted R² |
+|---|---|---|---|---|
+| Linear Regression (fare) | 21.139 | 41.747 | 0.347 | 0.324 |
+
+**Final recommendation**: deploy the **tuned Random Forest**
+(GridSearchCV, OOB = 0.817). Among the three baseline classifiers, Random
+Forest already had the best F1 (0.742 vs Logistic Regression 0.734 and
+Decision Tree 0.721), while Logistic Regression edged it out slightly on
+AUC (0.861 vs 0.820) — a gap too small to change the recommendation.
+GridSearchCV tuning plus the OOB score give the Random Forest an extra,
+independently-validated layer of confidence the other two models don't
+have, and tree ensembles are less sensitive to the linear
+decision-boundary assumption logistic regression makes — which matters
+given the class-and-sex interaction effects seen in the EDA (e.g. 3rd-class
+men surviving at 13.5% vs 1st-class women at 96.7%).
+
+### Saved pipeline
+
+`titanic_pipeline.joblib` — the complete fitted `Pipeline`
+(`ColumnTransformer` + tuned `RandomForestClassifier`) from GridSearchCV,
+saved with `joblib.dump`. Reloaded with `joblib.load` and confirmed to
+predict correctly end-to-end on two raw, unpreprocessed sample rows (see
+bottom of `modeling_report.txt`) — no manual preprocessing needed before
+calling `.predict()` on new raw data.
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `01_eda.py` / `eda_report.txt` | Load once, profile, clean, EDA + data story |
+| `titanic.csv` | Cleaned dataset — the one committed offline fallback |
+| `02_modeling.py` / `modeling_report.txt` | Full modeling pipeline (Part B) |
+| `charts/01–07` | EDA charts (univariate, correlation, data story, z-score check) |
+| `charts/08–10` | ROC curves, decision tree, regression residuals |
+| `titanic_pipeline.joblib` | Saved, reloadable, end-to-end fitted pipeline |
